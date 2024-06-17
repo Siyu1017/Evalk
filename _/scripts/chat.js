@@ -5,7 +5,7 @@
     const EVALK_DEFAULT_SERVER = "http://tw01.host.asteroid.tw:25571/";
     const EVALK_THEMES_LIST = ["system", "light", "dark", "evalk-theme-sun", "evalk-theme-cloud", "evalk-theme-candy"];
     const EVALK_PRIVATE_ROOM_CODE = "Privalk"; // ":pri-code-evk";
-    var EVALK_SERVER_LIST = ["http://tw01.host.asteroid.tw:25571/", "68bc7d27-a3eb-4776-8d1a-30eef4a8cbb2-00-qz1wlnehat7d.pike.replit.dev", "39267d66-2567-4ed4-adbf-ecc34662d46f-00-1oyfwiq3hln1.pike.replit.dev"];
+    var EVALK_SERVER_LIST = ["http://tw01.host.asteroid.tw:25571/"];
     var EVALK_SERVER = localStorage.getItem("evalk.server") ? localStorage.getItem("evalk.server") : EVALK_DEFAULT_SERVER; // location.host;
     var EVALK_THEME = localStorage.getItem("evalk.theme") ? EVALK_THEMES_LIST.indexOf(localStorage.getItem("evalk.theme")) > -1 ? localStorage.getItem("evalk.theme") : "system" : "system";
     var EVALK_WINDOW_BLUR = false;
@@ -526,7 +526,7 @@
                     }
                     */
                     if (setting.elements[0].querySelector("#dev-mode").checked == true && EVALK_CODE_MODE != "dev") {
-                        location.href = `https://dev-${EVALK_SERVER}`;
+                        // location.href = `https://dev-${EVALK_SERVER}`;
                     }
                     setTimeout(function () {
                         setting.close();
@@ -616,7 +616,7 @@
                 }
 
                 localStorage.setItem("evalk.server", EVALK_SERVER);
-                socket = io("wss://" + EVALK_SERVER);
+                socket = io(EVALK_SERVER);
 
                 createMessage({
                     username: "Privalk",
