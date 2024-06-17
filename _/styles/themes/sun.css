@@ -1,0 +1,65 @@
+.evalk-theme-sun {
+    --default-color: rgb(0, 0, 0);
+    --input-background: linear-gradient(to left, #eea1d622 0, #e9b5b522 20%, #eed7ab22 70%, #e4e9a122 100%);
+    --hover-background: linear-gradient(to left, #eea1d63b 0, #e9b5b53b 20%, #eed7ab3b 70%, #e4e9a13b 100%);
+    --svg-button-color: rgb(81, 81, 81);
+    --border-color: rgba(0, 0, 0, 0);
+    --message-time-color: rgb(163, 166, 170);
+    --message-background: linear-gradient(to top, #eea1d628 0, #e9b5b528 20%, #eed7ab28 70%, #e4e9a128 100%);
+    --evalk-color: linear-gradient(to right, #b846ff 0, #b823e0 20%, #ff03c3 70%, #ff20c1 100%);
+    --link-color: #0068E0;
+    --s-font-color: rgb(24, 24, 24);
+    --s-icon-color: rgb(120, 120, 120);
+    --s-trigger-border: rgb(210, 210, 210);
+    --s-popup-item-selected-color: #fff;
+    --s-popup-separation: rgb(210, 210, 210);
+    --s-popup-border: rgb(210, 210, 210);
+    --mask-bg: #ffc8ee 0, #ffd8d8 20%, #fff2d8 70%, #fdffe7 100%;
+    --mention-bg: rgba(103, 114, 227, 0.15);
+    --mention-color: rgb(103, 114, 227);
+}
+
+.evalk-theme-sun *::selection {
+    background: #b1d9ff;
+}
+
+.evalk-theme-sun .message-go-bottom {
+    background: linear-gradient(to left top, var(--mask-bg));
+}
+
+.evalk-theme-sun .message-go-bottom svg {
+    color: #0d6efd;
+}
+
+.evalk-theme-sun .list {
+    background: linear-gradient(to top, #eea1d63b 0, #e9b5b53b 20%, #eed7ab3b 70%, #e4e9a13b 100%);
+}
+
+.evalk-theme-sun {
+    background: none;
+}
+
+.evalk-theme-sun .chat {
+    background: linear-gradient(to top, #eea1d622 0, #e9b5b522 20%, #eed7ab22 70%, #e4e9a122 100%);
+}
+
+.evalk-theme-sun .evalk-modal {
+    background: linear-gradient(to left top, var(--mask-bg));
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.evalk-theme-sun .evalk-loading {
+    background: linear-gradient(to left top,  var(--mask-bg));
+}
+
+.evalk-theme-sun .evalk-modal * {
+    --border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* For S.js */
+
+.evalk-theme-sun {
+    --s-trigger-background: linear-gradient(to left top, #eea1d622 0, #e9b5b522 20%, #eed7ab22 70%, #e4e9a122 100%);
+    --s-popup-item-hover: linear-gradient(to left, #eea1d63b 0, #e9b5b53b 20%, #eed7ab3b 70%, #e4e9a13b 100%);
+    --s-popup-background: linear-gradient(to left, var(--mask-bg));
+}

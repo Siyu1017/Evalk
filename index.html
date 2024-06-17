@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evalk</title>
+    <!--link rel="stylesheet" href="./_/styles/select.min.css"-->
+    <link rel="stylesheet" href="./_/styles/global.css">
+    <link rel="stylesheet" href="./_/styles/chat.css">
+    <script>
+        const EVALK_CELEBRATE_MODE = false;
+    </script>
+    <script src="./_/scripts/select.dev.js"></script>
+    <script src="./_/scripts/evalk.js"></script>
+    <script src="./_/scripts/modal.js"></script>
+    <script src="./_/scripts/syntax.js"></script>
+    <script src="./_/scripts/chat.js" defer></script>
+	<!--script src="./_/scripts/global.js" defer></script-->
+    <!--script src="./build/evalk.js" defer></script-->
+    <style>
+        .switch,
+        .switch * {
+            user-select: auto !important;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            margin-left: 15px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:checked+.slider {
+            background-color: #2196F3;
+        }
+
+        input:focus+.slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked+.slider:before {
+            -webkit-transform: translateX(18px);
+            -ms-transform: translateX(18px);
+            transform: translateX(18px);
+        }
+
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+        .switch-description {
+            -webkit-transform: translateX(81px);
+            -ms-transform: translateX(81px);
+            transform: translateX(81px);
+            font-size: 142%;
+            white-space: nowrap;
+            position: absolute;
+        }
+
+        label.switch {
+            margin: auto 0;
+        }
+    </style>
+    <style>
+        #nprogress {
+            pointer-events: none;
+            --nprogress: linear-gradient(to right, #b846ff 0, #b823e0 20%, #ff03c3 70%, #ff20c1 100%);
+        }
+
+        #nprogress .bar {
+            background-image: var(--nprogress);
+            position: fixed;
+            z-index: 9999999999999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+        }
+
+        #nprogress .peg {
+            display: block;
+            position: absolute;
+            right: 0px;
+            width: 100px;
+            height: 100%;
+            box-shadow: 0 0 10px var(--nprogress), 0 0 5px var(--nprogress);
+            opacity: 1.0;
+            -webkit-transform: rotate(3deg) translate(0px, -4px);
+            -ms-transform: rotate(3deg) translate(0px, -4px);
+            transform: rotate(3deg) translate(0px, -4px);
+        }
+    </style>
+    <link rel="icon" href="./favicon.ico">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"
+        integrity="sha512-bUg5gaqBVaXIJNuebamJ6uex//mjxPk8kljQTdM1SwkNrQD7pjS+PerntUSD+QRWPNJ0tq54/x4zRV8bLrLhZg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"
+        integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <script>
+        NProgress.configure({ showSpinner: false });
+        NProgress.start();
+    </script>
+    <div class="page">
+        <div class="evalk-loading" id="loading">
+            <div class="evalk-icon"></div>
+        </div>
+        <div class="chats" style="display: none;" id="chat">
+            <div class="list">
+                <div class="toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1"
+                        stroke="currentColor" class="toggle-svg">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"></path>
+                    </svg>
+                </div>
+                <div class="users">
+                    <div class="evalk-explore">
+                        <div class="evalk">Evalk</div>
+                        <div class="explore"></div>
+                    </div>
+                    <div class="search">
+                        <input type="search" class="search-input" placeholder="搜尋 Evalk" id="search"
+                            autocomplete="false">
+                    </div>
+                    <div class="items" id="items"></div>
+                    <div class="new">
+                        <div class="create btn" id="new">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                                stroke="currentColor" class="create-icon">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            </svg>
+                            <div class="create-text">New Evalk</div>
+                        </div>
+                    </div> 
+                </div>
+            </div>
+            <div class="chat">
+                <div class="header">
+                    <div class="chat-back">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left"><path d="m15 18-6-6 6-6"/></svg>
+                    </div>
+                    <div class="icon">
+                        <img src="./favicon.ico" id="room-icon">
+                    </div>
+                    <div class="title" id="room-title">Evalk</div>
+                    <div class="setting">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z">
+                            </path>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="body">
+                    <div class="messages-box" id="message-box">
+                        <div tab-index="0" class="message-go-bottom">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
+                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"></path>
+                            </svg>
+                        </div>
+                        <div class="messages"></div>
+                    </div>
+                    <div class="inputs">
+                        <div class="reply">
+                            <span class="reply-details">回覆<span class="reply-user" id="reply-user">Evalk</span></span>
+                            <div class="reply-cancel"></div>
+                        </div>
+                        <div class="actions">
+                            <div class="file"></div>
+                            <div class="text">
+                                <div class="input-mask">
+                                    <textarea id="input-text" placeholder="傳送訊息給 Evalk" class="input-text"></textarea>
+                                </div>
+                            </div>
+                            <div class="submit">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="#0d6efd" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="none" class="like-icon">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 4.5c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23H5.904M14.25 9h2.25M5.904 18.75c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 01-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 10.203 4.167 9.75 5 9.75h1.053c.472 0 .745.556.5.96a8.958 8.958 0 00-1.302 4.665c0 1.194.232 2.333.654 3.375z" />
+                                </svg>
+                                <svg class="submit-icon" viewBox="0 0 24 24">
+                                    <path
+                                        d="M16.6915026,12.4744748 L3.50612381,13.2599618 C3.19218622,13.2599618 3.03521743,13.4170592 3.03521743,13.5741566 L1.15159189,20.0151496 C0.8376543,20.8006365 0.99,21.89 1.77946707,22.52 C2.41,22.99 3.50612381,23.1 4.13399899,22.8429026 L21.714504,14.0454487 C22.6563168,13.5741566 23.1272231,12.6315722 22.9702544,11.6889879 C22.8132856,11.0605983 22.3423792,10.4322088 21.714504,10.118014 L4.13399899,1.16346272 C3.34915502,0.9 2.40734225,1.00636533 1.77946707,1.4776575 C0.994623095,2.10604706 0.8376543,3.0486314 1.15159189,3.99121575 L3.03521743,10.4322088 C3.03521743,10.5893061 3.34915502,10.7464035 3.50612381,10.7464035 L16.6915026,11.5318905 C16.6915026,11.5318905 17.1624089,11.5318905 17.1624089,12.0031827 C17.1624089,12.4744748 16.6915026,12.4744748 16.6915026,12.4744748 Z"
+                                        fill="#0a7cff"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

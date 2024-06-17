@@ -1,0 +1,19 @@
+@charset "UTF-8";
+
+.message {
+    background-image: radial-gradient(circle at top right,rgba(121,68,154,.13),transparent),radial-gradient(circle at 20% 80%,rgba(41,196,255,.13),transparent);
+}
+
+:root {
+    --hover-background: radial-gradient(circle at top right,rgba(121,68,154,.13),transparent),radial-gradient(circle at 20% 80%,rgba(41,196,255,.13),transparent);
+}
+
+.light {
+    --hover-background: radial-gradient(circle at top right,rgba(121,68,154,.13),transparent),radial-gradient(circle at 20% 80%,rgba(41,196,255,.13),transparent);
+}
+
+input,
+textarea {
+    background: var(--input-background);
+    background-image: radial-gradient(circle at top right,rgba(121,68,154,.13),transparent),radial-gradient(circle at 20% 80%,rgba(41,196,255,.13),transparent);
+}

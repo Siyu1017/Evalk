@@ -1,0 +1,31 @@
+.page {
+	background: none;
+}
+
+.input, .input-text {
+	border: 0;
+	background-color: unset;
+	color: #fff !important;
+}
+
+.input:focus {
+	border: 0;
+	background-color: unset;
+}
+
+.input-text {
+	background: var(--input-background);
+	background-image: radial-gradient(circle at top right, rgba(121, 68, 154, .13), transparent), radial-gradient(circle at 20% 80%, rgba(41, 196, 255, .13), transparent);
+}
+
+.text {
+	background: none;
+}
+
+.evalk-modal {
+	background-image: radial-gradient(circle at top right, rgba(121, 68, 154, .13), transparent), radial-gradient(circle at 20% 80%, rgba(41, 196, 255, .13), transparent);
+}
+
+.time {
+	color: var(--message-time-color) !important
+}
