@@ -96,14 +96,22 @@ body {
 		--items-max-height: calc(100vh - 108px);
 	}
 
-	.item-title,
-	.item-more,
-	.explore,
-	.search,
-	.evalk,
-	.evalk-explore {
+	.item-title, .item-more, .explore, .search, .evalk, .evalk-explore {
 		display: none !important;
 	}
+
+.item-unread.active {
+    font-size: 0;
+    color: transparent;
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    margin: 0;
+    box-shadow: var(--primary-color) 0px 0px 0px 2px;
+}
 
 	.toggle {
 		display: block !important;
@@ -271,6 +279,8 @@ textarea {
 	border-radius: 8px;
 	width: calc(100% - 1rem);
 	padding: var(--item-padding);
+	align-items: center;
+	position: relative;
 }
 
 .item+.item {
@@ -1291,4 +1301,19 @@ label.switch[disabled] {
 
 .chat-back svg {
     margin-right: 2.1px;
+}
+
+.item-unread {
+    margin: auto 8px auto auto;
+    border-radius: 12px;
+    background: var(--danger-color);
+    color: #fff !important;
+    display: none;
+    font-size: 12px;
+    width: fit-content;
+    padding: 2px 6px;
+}
+
+.item-unread.active {
+    display: block;
 }

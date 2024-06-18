@@ -2,11 +2,14 @@
 
 (async function () {
     const EVALK_CODE_MODE = "product";
-    const EVALK_DEFAULT_SERVER = "evalk.is-a.dev";
     const EVALK_THEMES_LIST = ["system", "light", "dark", "evalk-theme-sun", "evalk-theme-cloud", "evalk-theme-candy"];
     const EVALK_PRIVATE_ROOM_CODE = "Privalk"; // ":pri-code-evk";
-    var EVALK_SERVER_LIST = ["evalk.is-a.dev"];
-    var EVALK_SERVER = localStorage.getItem("evalk.server") ? localStorage.getItem("evalk.server") : EVALK_DEFAULT_SERVER; // location.host;
+    const EVALK_SERVER_LIST = {
+        'http': ['http://tw01.host.asteroid.tw:25571'],
+        'https': ['https://evalk.is-a.dev']
+    };
+    const EVALK_DEFAULT_SERVER = Object.values(EVALK_SERVER_LIST).includes(location.origin) ? location.origin : location.protocol.indexOf("https") > -1 ? EVALK_SERVER_LIST['https'][0] : EVALK_SERVER_LIST['http'][0];
+    var EVALK_SERVER = EVALK_DEFAULT_SERVER; // location.host;
     var EVALK_THEME = localStorage.getItem("evalk.theme") ? EVALK_THEMES_LIST.indexOf(localStorage.getItem("evalk.theme")) > -1 ? localStorage.getItem("evalk.theme") : "system" : "system";
     var EVALK_WINDOW_BLUR = false;
     var UNREAD_MESSAGE_COUNT = 0;
@@ -59,7 +62,7 @@
                     time: Date.now(),
                     code: "dev-code-evk",
                     message: encode(
-`🎉 歡迎來到 Evalk! 🎉\n💡 你可以於聊天中使用以下的 Markdown 語法
+                        `🎉 歡迎來到 Evalk! 🎉\n💡 你可以於聊天中使用以下的 Markdown 語法
 <div style="display: inline-flex;align-items: center;"># Heading1 : <h1 style="margin: 0;">Heading1</h1></div>
 <div style="display: inline-flex;align-items: center;">## Heading2 : <h2 style="margin: 0;">Heading2</h2></div>
 <div style="display: inline-flex;align-items: center;">### Heading3 : <h3 style="margin: 0;">Heading3</h3></div>
@@ -143,12 +146,11 @@
     function encode(f, j) { f = btoa(escape(f)); var l = ""; for (var c = 0; c < j.length; c++) { l += j.charCodeAt(c).toString() } var g = Math.floor(l.length / 5); var b = parseInt(l.charAt(g) + l.charAt(g * 2) + l.charAt(g * 3) + l.charAt(g * 4) + l.charAt(g * 5)); var a = Math.ceil(j.length / 2); var h = Math.pow(2, 31) - 1; var d = Math.round(Math.random() * 1000000000) % 100000000; l += d; while (l.length > 10) { l = (parseInt(l.substring(0, 10)) + parseInt(l.substring(10, l.length))).toString() } l = (b * l + a) % h; var e = ""; var k = ""; for (c = 0; c < f.length; c++) { e = parseInt(f.charCodeAt(c) ^ Math.floor((l / h) * 255)); if (e < 16) { k += "0" + e.toString(16) } else { k += e.toString(16) } l = (b * l + a) % h } d = d.toString(16); while (d.length < 8) { d = "0" + d } k += d; return k };
     function decode(f, j) { try { var l = ""; for (var c = 0; c < j.length; c++) { l += j.charCodeAt(c).toString() } var g = Math.floor(l.length / 5); var b = parseInt(l.charAt(g) + l.charAt(g * 2) + l.charAt(g * 3) + l.charAt(g * 4) + l.charAt(g * 5)); var a = Math.round(j.length / 2); var h = Math.pow(2, 31) - 1; var d = parseInt(f.substring(f.length - 8, f.length), 16); f = f.substring(0, f.length - 8); l += d; while (l.length > 10) { l = (parseInt(l.substring(0, 10)) + parseInt(l.substring(10, l.length))).toString() } l = (b * l + a) % h; var e = ""; var k = ""; for (c = 0; c < f.length; c += 2) { e = parseInt(parseInt(f.substring(c, c + 2), 16) ^ Math.floor((l / h) * 255)); k += String.fromCharCode(e); l = (b * l + a) % h } return unescape(atob(k)); } catch (e) { return console.warn("Decoding failed.") } };
 
-    window.onblur = () => { EVALK_WINDOW_BLUR = true; };
+    window.onblur = () => {
+        EVALK_WINDOW_BLUR = true;
+    };
     window.onfocus = () => {
         EVALK_WINDOW_BLUR = false;
-        UNREAD_MESSAGE_COUNT = 0;
-
-        document.title = `Evalk [ ${ROOM_CODE} ]`;
     };
 
     $(".message-go-bottom").addEventListener("click", () => {
@@ -164,9 +166,10 @@
     })
 
     var createItem = (data, region = 'web') => {
+        var unread = 0;
         var item = document.createElement("div");
         item.className = data.active == true ? "item active" : "item";
-        item.innerHTML = `<img class="item-icon" src="${data.avatar}"><div class="item-title">${data.name}</div><div class="item-more"></div>`;
+        item.innerHTML = `<img class="item-icon" src="${data.avatar}"><div class="item-title">${data.name}</div><div class="item-unread" data-item="${data.code}"></div>`;
         var messages = document.createElement("div");
         messages.className = data.active == true ? "messages active" : "messages";
         messages.setAttribute("data-room", data.code);
@@ -176,6 +179,10 @@
                 $(".message-go-bottom").classList.add("active");
             } else {
                 $(".message-go-bottom").classList.remove("active");
+                $(`[data-item="${data.code}"]`).classList.remove("active");
+                UNREAD_MESSAGE_COUNT -= unread;
+                unread = 0;
+                document.title = UNREAD_MESSAGE_COUNT > 0 ? `(${UNREAD_MESSAGE_COUNT}) EVALK [ ${ROOM_CODE} ]` : `Evalk [ ${ROOM_CODE} ]`;
             }
         });
         function change() {
@@ -194,11 +201,15 @@
             item.classList.add("active");
             document.dispatchEvent(event);
             $(`[data-room="${ROOM_CODE}"]`).scrollTop = $(`[data-room="${ROOM_CODE}"]`).scrollHeight;
-            document.title = `Evalk [ ${ROOM_CODE} ]`;
+            UNREAD_MESSAGE_COUNT -= unread;
+            $(`[data-item="${data.code}"]`).classList.remove("active");
+            unread = 0;
+            document.title = UNREAD_MESSAGE_COUNT > 0 ? `(${UNREAD_MESSAGE_COUNT}) EVALK [ ${ROOM_CODE} ]` : `Evalk [ ${ROOM_CODE} ]`;
         }
         if (region == 'web') {
             socket.on(data.code, (data) => {
-                if (EVALK_WINDOW_BLUR == true) {
+                if (data.EVALK_USER_ID != EVALK_USER_ID && data.code != ROOM_CODE || $(`[data-room="${data.code}"]`).scrollTop + $(`[data-room="${data.code}"]`).offsetHeight < $(`[data-room="${data.code}"]`).scrollHeight - $(`[data-room="${data.code}"]`).offsetHeight) {
+                    unread++;
                     UNREAD_MESSAGE_COUNT++;
                     document.title = `(${UNREAD_MESSAGE_COUNT}) EVALK [ ${ROOM_CODE} ]`;
                 }
@@ -206,22 +217,31 @@
                     return createMessage(data, true, data.id);
                 } else {
                     createMessage(data);
-                    if ($(`[data-room="${data.code}"]`).classList.contains("active")) {
+                    if ($(`[data-room="${data.code}"]`).classList.contains("active") && EVALK_WINDOW_BLUR == false) {
                         if ($(`[data-room="${data.code}"]`).scrollTop + $(`[data-room="${data.code}"]`).offsetHeight > $(`[data-room="${data.code}"]`).scrollHeight - $(`[data-room="${data.code}"]`).offsetHeight) {
-                            $(`[data-room="${data.code}"]`).scrollTo({ 'behavior': 'smooth', 'top': $(`[data-room="${data.code}"]`).scrollHeight })
+                            $(`[data-room="${data.code}"]`).scrollTo({ 'behavior': 'smooth', 'top': $(`[data-room="${data.code}"]`).scrollHeight });
+                            $(`[data-item="${data.code}"]`).classList.remove("active");
+                            unread = 0;
                         }
                     }
+                    if (unread == 0) {
+                        $(`[data-item="${data.code}"]`).classList.remove("active");
+                    } else {
+                        $(`[data-item="${data.code}"]`).classList.add("active");
+                    }
+                    $(`[data-item="${data.code}"]`).innerHTML = unread > 9 ? '9+' : unread <= 0 ? "" : unread;
                 }
             })
         }
 
+        document.getElementById("items").appendChild(item);
+
         item.onclick = () => {
-            change()
+            change();
         };
         if (data.active == true) {
-            change()
+            change();
         }
-        document.getElementById("items").appendChild(item);
     };
     var delay = (d) => {
         return new Promise((r) => setTimeout(r, d));
@@ -600,8 +620,8 @@
 
     var serverListHTML = '';
 
-    EVALK_SERVER_LIST.forEach(server => {
-        serverListHTML += `<div class="${server == EVALK_DEFAULT_SERVER ? "select-item selected" : "select-item"}" value="${server}">${server}</div>`;
+    EVALK_SERVER_LIST[location.protocol.split(":")[0]].forEach(server => {
+        serverListHTML += `<div class="${server == EVALK_DEFAULT_SERVER ? "select-item selected" : "select-item"}" value="${server}">${server.split("//")[1]}</div>`;
     })
 
     var input = EVALK_MODAL_GENERATOR({
@@ -615,8 +635,7 @@
                     EVALK_USER_NAME = input.elements[0].querySelector("input").value.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
                 }
 
-                localStorage.setItem("evalk.server", EVALK_SERVER);
-                socket = io("wss://" + EVALK_SERVER);
+                socket = io(EVALK_SERVER);
 
                 createMessage({
                     username: "Privalk",
@@ -656,7 +675,7 @@
                         socket.emit("join", {
                             code: room.code
                         })
-                    })  
+                    })
 
                     createMessage({
                         username: "Privalk",
@@ -710,10 +729,6 @@
                 setTimeout(() => {
                     if (socket.connected == false) {
                         console.log(`Warning : Connection timed out.`);
-                        if (localStorage.getItem("evalk.server") != EVALK_DEFAULT_SERVER) {
-                            localStorage.removeItem("evalk.server");
-                            location.reload();
-                        }
                     }
                 }, 5000)
             }

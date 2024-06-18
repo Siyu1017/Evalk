@@ -41,6 +41,7 @@ body {
     --mask-bg: #fff;
     --mention-bg: rgba(103, 114, 227, 0.15);
     --mention-color: rgb(103, 114, 227);
+    --danger-color: rgb(225, 60, 57);
 }
 
 .light {
