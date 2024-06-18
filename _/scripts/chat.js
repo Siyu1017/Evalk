@@ -206,9 +206,17 @@
             unread = 0;
             document.title = UNREAD_MESSAGE_COUNT > 0 ? `(${UNREAD_MESSAGE_COUNT}) EVALK [ ${ROOM_CODE} ]` : `Evalk [ ${ROOM_CODE} ]`;
         }
+        window.onfocus = () => {
+            if ($(`[data-room="${data.code}"]`).classList.contains("active") && $(`[data-room="${data.code}"]`).scrollTop + $(`[data-room="${data.code}"]`).offsetHeight > $(`[data-room="${data.code}"]`).scrollHeight - $(`[data-room="${data.code}"]`).offsetHeight) {
+                UNREAD_MESSAGE_COUNT -= unread;
+                $(`[data-item="${data.code}"]`).classList.remove("active");
+                unread = 0;
+                document.title = UNREAD_MESSAGE_COUNT > 0 ? `(${UNREAD_MESSAGE_COUNT}) EVALK [ ${ROOM_CODE} ]` : `Evalk [ ${ROOM_CODE} ]`;
+            }
+        };
         if (region == 'web') {
             socket.on(data.code, (data) => {
-                if (data.EVALK_USER_ID != EVALK_USER_ID && data.code != ROOM_CODE || $(`[data-room="${data.code}"]`).scrollTop + $(`[data-room="${data.code}"]`).offsetHeight < $(`[data-room="${data.code}"]`).scrollHeight - $(`[data-room="${data.code}"]`).offsetHeight) {
+                if (data.EVALK_USER_ID != EVALK_USER_ID && data.code != ROOM_CODE || $(`[data-room="${data.code}"]`).scrollTop + $(`[data-room="${data.code}"]`).offsetHeight < $(`[data-room="${data.code}"]`).scrollHeight - $(`[data-room="${data.code}"]`).offsetHeight || EVALK_WINDOW_BLUR == true) {
                     unread++;
                     UNREAD_MESSAGE_COUNT++;
                     document.title = `(${UNREAD_MESSAGE_COUNT}) EVALK [ ${ROOM_CODE} ]`;
