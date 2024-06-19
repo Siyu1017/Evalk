@@ -370,11 +370,11 @@
                 inviteText.className = "invite-text";
                 inviteJoin.innerHTML = joinedInviteRoom == false ? '加入' : '已加入';
                 inviteJoin.setAttribute('data-invite-code', inviteCode);
-                inviteText.innerHTML = mine == true ? "You sent an invite" : "You have been invited to Evalk [ " + inviteCode + " ]";
+                inviteText.innerHTML = mine == true ? "你發送了一個邀請" : "你已被邀請至 Evalk [ " + inviteCode + " ]";
                 inviteJoin.addEventListener('click', function () {
                     EVALK_GLOBAL_ROOMS.forEach(room => {
                         if (room.code == inviteCode) {
-                            joinedInviteRoom = true;
+                            joinedInviteRoom = true;    
                         }
                     })
 
