@@ -88,7 +88,7 @@ body {
 	background: var(--default-background);
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 936px) {
 	:root {
 		--list-width: 72px;
 		--create-text-display: none;
@@ -1365,12 +1365,12 @@ label.switch[disabled] {
 }
 
 .evalk-invite-container {
-    container-name: invite-card;
-    container-type: inline-size;
+    /* container-name: invite-card; */
+    /* container-type: inline-size; */
     max-width: 480px;
 }
 
-@container invite-card (max-width: 320px) {
+@media screen and (max-width: 1096px) {
 	.evalk-invite {
 		flex-direction: column;
 		align-items: normal;
