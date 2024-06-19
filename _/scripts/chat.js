@@ -657,10 +657,10 @@
                 },
                 "close": false
             }],
-            body: `${EVALK_CELEBRATE_MODE != true ? `<div class="settings-item"><span style="display: flex;align-items: center;">主題<span class="testing">測試版</span></span></div>` : ""}<div class="settings-item"><span>測試版</span><label class="switch" ${EVALK_CODE_MODE == "dev" ? "disabled" : " "}>
+            body: `${EVALK_CELEBRATE_MODE != true ? `<div class="settings-item"><span style="display: flex;align-items: center;">主題<span class="testing">測試版</span></span></div>` : ""}<!--div class="settings-item"><span>測試版</span><label class="switch" ${EVALK_CODE_MODE == "dev" ? "disabled" : " "}>
         <input type="checkbox" id="dev-mode" ${EVALK_CODE_MODE == "dev" ? "checked" : " "}>
         <span class="slider round"></span>
-    </label></div>
+    </label></div-->
     <!--div class="settings-item" style="gap: 12px;"><span style="white-space: nowrap;">伺服器</span><input id="server-address" class="evalk-input" value="${EVALK_SERVER}"></div-->`
         })
         setting.then(() => {
