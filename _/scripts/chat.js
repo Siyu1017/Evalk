@@ -856,7 +856,7 @@
                             inviteContainer.className = "invite-container";
                             inviteTip.className = "invite-tip";
                             inviteButton.className = "invite-button btn btn-primary";
-                            inviteTip.innerHTML = `輸入 <span data-element="invite">invite:${res.code}</span> 以邀請他人加入此 Evalk`;
+                            inviteTip.innerHTML = `傳送 <span data-element="invite">invite:${res.code}</span> 即可邀請他人加入此 Evalk`;
                             // inviteButton.innerHTML = "點擊複製 Evalk 碼";
                             $(`[data-room="${res.code}"]`).appendChild(inviteContainer);
                             inviteContainer.appendChild(inviteTip);
