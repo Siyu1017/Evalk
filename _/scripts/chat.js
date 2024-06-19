@@ -894,6 +894,12 @@
                                 selectText(inviteTip.querySelector("[data-element='invite']"))
                             })
 
+                            $(`.invite-join[data-invite-code='${res.code}']`, true).forEach(btn => {
+                                btn.innerHTML = '已加入';
+                                btn.classList.remove("btn-primary");
+                                btn.classList.add("btn-secondary");
+                            })
+
                             // inviteTip.appendChild(inviteButton);
                             NProgress.done();
                         });
@@ -933,6 +939,11 @@
                                             })
                                             $("#room-icon").src = res.icon;
                                             $("#room-title").innerText = res.title;
+                                            $(`.invite-join[data-invite-code='${input.elements[0].querySelector("input").value.trim()}']`, true).forEach(btn => {
+                                                btn.innerHTML = '已加入';
+                                                btn.classList.remove("btn-primary");
+                                                btn.classList.add("btn-secondary");
+                                            })
                                         }
                                     })
                                 }
