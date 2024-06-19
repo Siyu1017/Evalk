@@ -924,7 +924,7 @@ label.switch[disabled] {
 	margin-right: 5px;
 	font-family: 'evalk';
 	justify-content: center;
-	align-items: flex-start;
+	align-items: center;
 	transform: scale(.9);
 	transform-origin: center;
 }
