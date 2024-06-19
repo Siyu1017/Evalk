@@ -647,9 +647,11 @@
                         location.reload();
                     }
                     */
+                   /*
                     if (setting.elements[0].querySelector("#dev-mode").checked == true && EVALK_CODE_MODE != "dev") {
                         location.href = `https://dev-${EVALK_SERVER}`;
                     }
+                        */
                     setTimeout(function () {
                         setting.close();
                         NProgress.done();
