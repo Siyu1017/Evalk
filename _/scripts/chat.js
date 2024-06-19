@@ -27,6 +27,7 @@
     };
     var EVALK_USER_NAME = "Anonymous User [ " + DEV_RANDOM_ID(8, "abcdefghijklmnopqrstuvwxyz01234567890123456789") + " ]";
     var ROOM_CODE = "dev-code-evk";
+    var CURRENT_SHOW_PAGE = "chat";
     const EVALK_USER_ID = DEV_RANDOM_ID(144);
     const EVALK_LOCAL_ROOMS = [
         {
@@ -63,13 +64,13 @@
                     code: "dev-code-evk",
                     message: encode(
                         `🎉 歡迎來到 Evalk! 🎉\n💡 你可以於聊天中使用以下的 Markdown 語法
-<div style="display: inline-flex;align-items: center;"># Heading1 : <h1 style="margin: 0;">Heading1</h1></div>
-<div style="display: inline-flex;align-items: center;">## Heading2 : <h2 style="margin: 0;">Heading2</h2></div>
-<div style="display: inline-flex;align-items: center;">### Heading3 : <h3 style="margin: 0;">Heading3</h3></div>
-<div style="display: inline-flex;align-items: center;">~~Deleted Text~~ : <s>Deleted Text</s></div>
-<div style="display: inline-flex;align-items: center;">_Italic Text_ : <i>Italic Text</i></div>
-<div style="display: inline-flex;align-items: center;">**Bold Text** : <b>Bold Text</b></div>
-<div style="display: inline-flex;align-items: center;">\`Inline Code\` : <code class="inline">Inline Code</code></div>
+<div style="display: inline-flex;align-items: center;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;"># Heading1 : <h1 style="margin: 0;">Heading1</h1></div>
+<div style="display: inline-flex;align-items: center;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">## Heading2 : <h2 style="margin: 0;">Heading2</h2></div>
+<div style="display: inline-flex;align-items: center;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">### Heading3 : <h3 style="margin: 0;">Heading3</h3></div>
+<div style="display: inline-flex;align-items: center;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">~~Deleted Text~~ : <s>Deleted Text</s></div>
+<div style="display: inline-flex;align-items: center;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">_Italic Text_ : <i>Italic Text</i></div>
+<div style="display: inline-flex;align-items: center;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">**Bold Text** : <b>Bold Text</b></div>
+<div style="display: inline-flex;align-items: center;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">\`Inline Code\` : <code class="inline">Inline Code</code></div>
 <div>\`\`\`Code\`\`\` : <code>Code</code></div>`, "dev-code-evk"),
                     bot: true
                 }
@@ -156,6 +157,14 @@
         return { x: offset(element).left, y: offset(element).top };
     }
 
+    function switchShowPage(page) {
+        if (page == 'chat') {
+            $('.chats').classList.add('show-chat');
+        } else {
+            $('.chats').classList.remove('show-chat');
+        }
+    }
+
     window.onblur = () => {
         EVALK_WINDOW_BLUR = true;
     };
@@ -208,6 +217,10 @@
             });
             $(`[data-room="${ROOM_CODE}"]`).classList.add("active");
             $(".message-go-bottom").classList.remove("active");
+            if (window.innerWidth <= 450) {
+                CURRENT_SHOW_PAGE = 'chat';
+                switchShowPage(CURRENT_SHOW_PAGE);
+            }
             item.classList.add("active");
             document.dispatchEvent(event);
             $(`[data-room="${ROOM_CODE}"]`).scrollTop = $(`[data-room="${ROOM_CODE}"]`).scrollHeight;
@@ -259,6 +272,16 @@
         };
         if (data.active == true) {
             change();
+        }
+
+        if (region == 'web') {
+            EVALK_GLOBAL_ROOMS.push({
+                name: data.name,
+                avatar: data.avatar,
+                code: data.code,
+                active: data.active,
+                show: change
+            });
         }
     };
     var delay = (d) => {
@@ -366,15 +389,18 @@
                 var inviteText = document.createElement('span');
                 inviteContainer.className = "evalk-invite-container";
                 inviteCard.className = "evalk-invite";
-                inviteJoin.className = joinedInviteRoom == false ? "invite-join btn btn-primary" : "invite-join btn btn-secondary disabled";
+                inviteJoin.className = joinedInviteRoom == false ? "invite-join btn btn-primary" : "invite-join btn btn-secondary";
                 inviteText.className = "invite-text";
                 inviteJoin.innerHTML = joinedInviteRoom == false ? '加入' : '已加入';
                 inviteJoin.setAttribute('data-invite-code', inviteCode);
                 inviteText.innerHTML = mine == true ? "你發送了一個邀請" : "你已被邀請至 Evalk [ " + inviteCode + " ]";
                 inviteJoin.addEventListener('click', function () {
+                    var roomItem = null;
+
                     EVALK_GLOBAL_ROOMS.forEach(room => {
                         if (room.code == inviteCode) {
-                            joinedInviteRoom = true;    
+                            joinedInviteRoom = true;
+                            roomItem = room;
                         }
                     })
 
@@ -392,17 +418,10 @@
                                 })
                                 $("#room-icon").src = res.icon;
                                 $("#room-title").innerText = res.title;
-                                EVALK_GLOBAL_ROOMS.push({
-                                    name: res.title,
-                                    avatar: res.icon,
-                                    code: res.code,
-                                    active: true
-                                });
                                 $(`.invite-join[data-invite-code='${inviteCode}']`, true).forEach(btn => {
                                     btn.innerHTML = '已加入';
                                     btn.classList.remove("btn-primary");
                                     btn.classList.add("btn-secondary");
-                                    btn.classList.add("disabled");
                                 })
                                 joinedInviteRoom = true;
                             } else {
@@ -415,6 +434,8 @@
                                 joinedInviteRoom = true;
                             }
                         })
+                    } else if (joinedInviteRoom == true) {
+                        roomItem.show();
                     }
                 })
                 inviteContainer.appendChild(inviteCard);
@@ -586,9 +607,23 @@
     }
 
     $(".chat-back").addEventListener("click", () => {
-        $('.chat').style.display = "none";
-        $('.list').style = 'display: flex !important;';
+        if (window.innerWidth <= 450) {
+            CURRENT_SHOW_PAGE = 'list';
+            switchShowPage(CURRENT_SHOW_PAGE);
+        }
     })
+
+    window.onresize = () => {
+        $(".chat").style.transition = "none";
+        $(".list").style.transition = "none";
+        if (window.innerWidth <= 450) {
+            switchShowPage(CURRENT_SHOW_PAGE);
+        }
+        setTimeout(() => {
+            $(".chat").style = "";
+            $(".list").style = "";
+        }, 10);
+    }
 
     var Requset = async (e, t, n, o, a, i, s) => {
         try {
@@ -647,11 +682,11 @@
                         location.reload();
                     }
                     */
-                   /*
-                    if (setting.elements[0].querySelector("#dev-mode").checked == true && EVALK_CODE_MODE != "dev") {
-                        location.href = `https://dev-${EVALK_SERVER}`;
-                    }
-                        */
+                    /*
+                     if (setting.elements[0].querySelector("#dev-mode").checked == true && EVALK_CODE_MODE != "dev") {
+                         location.href = `https://dev-${EVALK_SERVER}`;
+                     }
+                         */
                     setTimeout(function () {
                         setting.close();
                         NProgress.done();
@@ -844,12 +879,6 @@
                             })
                             $("#room-icon").src = res.icon;
                             $("#room-title").innerText = res.title;
-                            EVALK_GLOBAL_ROOMS.push({
-                                name: res.title,
-                                avatar: res.icon,
-                                code: res.code,
-                                active: true
-                            });
                             var inviteContainer = document.createElement("div");
                             var inviteTip = document.createElement("div");
                             var inviteButton = document.createElement("div");
@@ -883,6 +912,18 @@
                                         code: input.elements[0].querySelector("input").value.trim(),
                                         icon: "./favicon.ico"
                                     }, (res) => {
+                                        var exist = false;
+                                        var matchedRoom = null;
+                                        EVALK_GLOBAL_ROOMS.forEach(room => {
+                                            if (room.code == input.elements[0].querySelector("input").value.trim()) {
+                                                exist = true;
+                                                matchedRoom = room;
+                                            }
+                                        })
+                                        if (exist == true) {
+                                            matchedRoom.show();
+                                            return;
+                                        }
                                         if (res.status == "ok") {
                                             createItem({
                                                 name: res.title,
@@ -892,12 +933,6 @@
                                             })
                                             $("#room-icon").src = res.icon;
                                             $("#room-title").innerText = res.title;
-                                            EVALK_GLOBAL_ROOMS.push({
-                                                name: res.title,
-                                                avatar: res.icon,
-                                                code: res.code,
-                                                active: true
-                                            });
                                         }
                                     })
                                 }
