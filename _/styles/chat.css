@@ -257,6 +257,7 @@ textarea {
 	align-items: center;
 	width: var(--list-width);
 	flex-direction: column;
+	min-width: var(--list-width);
 }
 
 .items {
@@ -1316,4 +1317,67 @@ label.switch[disabled] {
 
 .item-unread.active {
     display: block;
+}
+
+.invite-container {
+    width: 100%;
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+    padding-bottom: 0px;
+}
+
+.invite-tip {
+    padding: 12px 24px;
+    background: var(--message-background);
+    border-radius: 12px;
+}
+
+.new-select-popup {
+	--s-popup-option-padding: 0.5rem .875rem;
+	--s-popup-option-gap: .375rem;
+}
+
+.evalk-invite {
+    background: var(--primary-color);
+    padding: 12px 28px;
+    border-radius: 6px;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.invite-join {
+    white-space: nowrap;
+    min-width: fit-content;
+}
+
+.invite-text {
+    word-break: break-all;
+}
+
+.btn-danger {
+    color: #fff;
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.evalk-invite-container {
+    container-name: invite-card;
+    container-type: inline-size;
+    max-width: 480px;
+}
+
+@container invite-card (max-width: 320px) {
+	.evalk-invite {
+		flex-direction: column;
+		align-items: normal;
+		padding: 16px 28px;
+	}
+
+	.invite-join {
+		width: -webkit-fill-available;
+	}
 }

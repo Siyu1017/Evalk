@@ -146,6 +146,16 @@
     function encode(f, j) { f = btoa(escape(f)); var l = ""; for (var c = 0; c < j.length; c++) { l += j.charCodeAt(c).toString() } var g = Math.floor(l.length / 5); var b = parseInt(l.charAt(g) + l.charAt(g * 2) + l.charAt(g * 3) + l.charAt(g * 4) + l.charAt(g * 5)); var a = Math.ceil(j.length / 2); var h = Math.pow(2, 31) - 1; var d = Math.round(Math.random() * 1000000000) % 100000000; l += d; while (l.length > 10) { l = (parseInt(l.substring(0, 10)) + parseInt(l.substring(10, l.length))).toString() } l = (b * l + a) % h; var e = ""; var k = ""; for (c = 0; c < f.length; c++) { e = parseInt(f.charCodeAt(c) ^ Math.floor((l / h) * 255)); if (e < 16) { k += "0" + e.toString(16) } else { k += e.toString(16) } l = (b * l + a) % h } d = d.toString(16); while (d.length < 8) { d = "0" + d } k += d; return k };
     function decode(f, j) { try { var l = ""; for (var c = 0; c < j.length; c++) { l += j.charCodeAt(c).toString() } var g = Math.floor(l.length / 5); var b = parseInt(l.charAt(g) + l.charAt(g * 2) + l.charAt(g * 3) + l.charAt(g * 4) + l.charAt(g * 5)); var a = Math.round(j.length / 2); var h = Math.pow(2, 31) - 1; var d = parseInt(f.substring(f.length - 8, f.length), 16); f = f.substring(0, f.length - 8); l += d; while (l.length > 10) { l = (parseInt(l.substring(0, 10)) + parseInt(l.substring(10, l.length))).toString() } l = (b * l + a) % h; var e = ""; var k = ""; for (c = 0; c < f.length; c += 2) { e = parseInt(parseInt(f.substring(c, c + 2), 16) ^ Math.floor((l / h) * 255)); k += String.fromCharCode(e); l = (b * l + a) % h } return unescape(atob(k)); } catch (e) { return console.warn("Decoding failed.") } };
 
+    function getPosition(element) {
+        function offset(el) {
+            var rect = el.getBoundingClientRect(),
+                scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
+                scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            return { top: rect.top + scrollTop, left: rect.left + scrollLeft }
+        }
+        return { x: offset(element).left, y: offset(element).top };
+    }
+
     window.onblur = () => {
         EVALK_WINDOW_BLUR = true;
     };
@@ -323,12 +333,96 @@
             message.setAttribute("evalk-id", messageID);
             var loading = mine == true ? '<div class="loading"><div class="spinner" role="spinner"><div class="spinner-icon"></div></div></div>' : ' ';
             var origin_content = content;
+            var inviteRegex = /invite:([a-z]{3}-[a-z]{4}-[a-z]{3})/g;
+
+            var invite = false;
+            var inviteCode = '';
+            var joinedInviteRoom = false;
+
             content = mine == "default" ? content : contentFormat(content, data.mention);
+
+            content = content.replace(inviteRegex, (match, code) => {
+                invite = true;
+                inviteCode = code;
+                return `<span class="message-link" style="text-decoration: underline;">${match}</span>`;
+            })
+
+            EVALK_GLOBAL_ROOMS.forEach(room => {
+                if (room.code == inviteCode) {
+                    joinedInviteRoom = true;
+                }
+            })
+
             var reply_content = data.mention && data.mention != false ? `<div class="message-reply"><div class="message-reply-mask"><div class="message-reply-user">@${data.mention}</div><div class="message-reply-content">${contentFormat(replyContent, false)}</div></div></div>` : "";
             var bot_tag = bot == true ? '<span class="bot-verifier"><span class="bot-verifier-success"><svg width="16" height="16" viewBox="0 0 16 15.2"><path d="M7.4,11.17,4,8.62,5,7.26l2,1.53L10.64,4l1.36,1Z" fill="currentColor"></path></svg>BOT</span></span>' : " ";
             var Uncompleted = true;
             message.innerHTML = `${loading}<div class="message">${Uncompleted == true ? "" : reply_content}<div class="message-operates"><div class="message-operate" data-operate="reply"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="message-operate-icon"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg></div></div><div class="user-avatar"><img src="${avatar}"></div><div class="content"><div class="message-info"><div class="user-name">${username}</div>${bot_tag}<div class="time">${time}</div></div><div class="message-text">${content}</div></div></div>`;
             $(`[data-room="${data.code}"]`).appendChild(message);
+
+            if (invite == true) {
+                var inviteContainer = document.createElement('div');
+                var inviteCard = document.createElement('div');
+                var inviteJoin = document.createElement('div');
+                var inviteText = document.createElement('span');
+                inviteContainer.className = "evalk-invite-container";
+                inviteCard.className = "evalk-invite";
+                inviteJoin.className = joinedInviteRoom == false ? "invite-join btn btn-primary" : "invite-join btn btn-secondary disabled";
+                inviteText.className = "invite-text";
+                inviteJoin.innerHTML = joinedInviteRoom == false ? '加入' : '已加入';
+                inviteJoin.setAttribute('data-invite-code', inviteCode);
+                inviteText.innerHTML = mine == true ? "You sent an invite" : "You have been invited to Evalk [ " + inviteCode + " ]";
+                inviteJoin.addEventListener('click', function () {
+                    EVALK_GLOBAL_ROOMS.forEach(room => {
+                        if (room.code == inviteCode) {
+                            joinedInviteRoom = true;
+                        }
+                    })
+
+                    if (joinedInviteRoom == false) {
+                        socket.emit("join", {
+                            code: inviteCode.trim(),
+                            icon: "./favicon.ico"
+                        }, (res) => {
+                            if (res.status == "ok") {
+                                createItem({
+                                    name: res.title,
+                                    avatar: res.icon,
+                                    code: res.code,
+                                    active: true
+                                })
+                                $("#room-icon").src = res.icon;
+                                $("#room-title").innerText = res.title;
+                                EVALK_GLOBAL_ROOMS.push({
+                                    name: res.title,
+                                    avatar: res.icon,
+                                    code: res.code,
+                                    active: true
+                                });
+                                $(`.invite-join[data-invite-code='${inviteCode}']`, true).forEach(btn => {
+                                    btn.innerHTML = '已加入';
+                                    btn.classList.remove("btn-primary");
+                                    btn.classList.add("btn-secondary");
+                                    btn.classList.add("disabled");
+                                })
+                                joinedInviteRoom = true;
+                            } else {
+                                $(`.invite-join[data-invite-code='${inviteCode}']`, true).forEach(btn => {
+                                    btn.innerHTML = '無法加入';
+                                    btn.classList.remove("btn-primary");
+                                    btn.classList.add("btn-danger");
+                                    btn.classList.add("disabled");
+                                })
+                                joinedInviteRoom = true;
+                            }
+                        })
+                    }
+                })
+                inviteContainer.appendChild(inviteCard);
+                inviteCard.appendChild(inviteText);
+                inviteCard.appendChild(inviteJoin);
+                message.querySelector(".content").appendChild(inviteContainer);
+            }
+
             if (message.querySelector(".message-reply")) {
                 message.querySelector(".message-reply").addEventListener("click", () => {
                     console.log(replyMessageId);
@@ -563,7 +657,14 @@
                 },
                 "close": false
             }],
-            body: `${EVALK_CELEBRATE_MODE != true ? `<div class="settings-item"><span style="display: flex;align-items: center;">主題<span class="testing">測試版</span></span><div class="select" data-select id="themes" >
+            body: `${EVALK_CELEBRATE_MODE != true ? `<div class="settings-item"><span style="display: flex;align-items: center;">主題<span class="testing">測試版</span></span></div>` : ""}<div class="settings-item"><span>測試版</span><label class="switch" ${EVALK_CODE_MODE == "dev" ? "disabled" : " "}>
+        <input type="checkbox" id="dev-mode" ${EVALK_CODE_MODE == "dev" ? "checked" : " "}>
+        <span class="slider round"></span>
+    </label></div>
+    <!--div class="settings-item" style="gap: 12px;"><span style="white-space: nowrap;">伺服器</span><input id="server-address" class="evalk-input" value="${EVALK_SERVER}"></div-->`
+        })
+        setting.then(() => {
+            /*<div class="select" data-select id="themes" >
             <div class="select-default">請選擇...</div>
             <div class="select-popup">
                 <div class="select-group">
@@ -578,24 +679,37 @@
                     <div class="select-item" value="evalk-theme-candy">棉花糖</div>
                 </div>
             </div>
-        </div></div>` : ""}<div class="settings-item"><span>測試版</span><label class="switch" ${EVALK_CODE_MODE == "dev" ? "disabled" : " "}>
-        <input type="checkbox" id="dev-mode" ${EVALK_CODE_MODE == "dev" ? "checked" : " "}>
-        <span class="slider round"></span>
-    </label></div>
-    <!--div class="settings-item" style="gap: 12px;"><span style="white-space: nowrap;">伺服器</span><input id="server-address" class="evalk-input" value="${EVALK_SERVER}"></div-->`
-        })
-        setting.then(() => {
-            if (setting.elements[0].querySelector(".select-item[value='" + EVALK_THEME + "']")) {
-                setting.elements[0].querySelector(".select-item[value='" + EVALK_THEME + "']").classList.add("selected");
-                S.install();
-            } else {
-                S.install();
+        </div></div>*/
+            if (EVALK_CELEBRATE_MODE != true) {
+                var themeSelect = S.install(setting.elements[0].querySelectorAll(".settings-item")[0], [
+                    {
+                        content: '系統',
+                        value: "system",
+                    }, {
+                        content: '明亮',
+                        value: "light",
+                    }, {
+                        content: '灰暗',
+                        value: "dark",
+                    }/*, {
+                        type: 'separator'
+                    }, {
+                        content: '耀眼陽光',
+                        value: "evalk-theme-sun",
+                    }, {
+                        content: '輕飄雨雲',
+                        value: "evalk-theme-cloud",
+                    }, {
+                        content: '棉花糖',
+                        value: "evalk-theme-candy",
+                    }*/
+                ]);
+                themeSelect.select(EVALK_THEME);
+                themeSelect.on("change", (e) => {
+                    document.body.className = e.value;
+                    EVALK_THEME = e.value;
+                })
             }
-            setting.elements[0].querySelector("#themes").addEventListener("change", (e) => {
-                var theme = e.detail;
-                document.body.className = theme;
-                EVALK_THEME = theme;
-            })
         })
     })
 
@@ -622,14 +736,232 @@
         return result;
     }
 
+    function selectText(element) {
+        var selection = window.getSelection();
+        selection.removeAllRanges();
+        var range = document.createRange();
+        range.selectNodeContents(element);
+        selection.addRange(range);
+    }
+
     if (getJsonFromUrl()['EVALK_USER_NAME']) {
         EVALK_USER_NAME = getJsonFromUrl()['EVALK_USER_NAME'].replaceAll("<", "&lt;").replaceAll(">", "&gt;");
     }
 
-    var serverListHTML = '';
+    function initConnection(input) {
+        input.close();
+
+        if (!getJsonFromUrl()['EVALK_USER_NAME']) {
+            EVALK_USER_NAME = input.elements[0].querySelector("input").value.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+        }
+
+        socket = io(EVALK_SERVER);
+
+        createMessage({
+            username: "Privalk",
+            id: DEV_RANDOM_ID(96),
+            avatar: "./favicon.ico",
+            time: Date.now(),
+            code: EVALK_PRIVATE_ROOM_CODE,
+            message: encode(`正在連接至伺服器...  ( ${EVALK_SERVER} ) `, EVALK_PRIVATE_ROOM_CODE),
+            mention: false,
+            bot: true
+        }, false)
+
+        window.addEventListener("offline", () => {
+            socket.disconnect();
+        })
+
+        window.addEventListener("online", () => {
+            location.reload();
+        })
+
+        socket.on("disconnect", function () {
+            createMessage({
+                username: "Privalk",
+                id: DEV_RANDOM_ID(96),
+                avatar: "./favicon.ico",
+                time: Date.now(),
+                code: EVALK_PRIVATE_ROOM_CODE,
+                message: encode(`⚠️ 已與伺服器斷開連接`, EVALK_PRIVATE_ROOM_CODE),
+                mention: false,
+                bot: true
+            }, false)
+        })
+
+        socket.on("connect", async function () {
+            socketCount++;
+            EVALK_GLOBAL_ROOMS.forEach(room => {
+                socket.emit("join", {
+                    code: room.code
+                })
+            })
+
+            createMessage({
+                username: "Privalk",
+                id: DEV_RANDOM_ID(96),
+                avatar: "./favicon.ico",
+                time: Date.now(),
+                code: EVALK_PRIVATE_ROOM_CODE,
+                message: encode(`✅ 已連接至伺服器`, EVALK_PRIVATE_ROOM_CODE),
+                mention: false,
+                bot: true
+            }, false)
+
+            if (socketCount == 1) {
+                var newSelect = S.install('#new', [
+                    {
+                        content: '建立新的 Evalk',
+                        value: "new",
+                    }, {
+                        content: '以 Evalk 代碼加入',
+                        value: "join",
+                    }
+                ], {
+                    trigger: '#new',
+                    popupClassName: "siyu-select-popup new-select-popup"
+                });
+
+                newSelect.on("trigger", (e) => {
+                    newSelect.setStyle('popup', 'min-width', $("#new").offsetWidth + "px");
+
+                })
+
+                newSelect.on("change", (e) => {
+                    if (e.value == "new") {
+                        NProgress.start();
+                        socket.emit("create", {
+                            icon: "./favicon.ico"
+                        }, (res) => {
+                            CL("EVALK_ROOM_MANAGER", `聊天室建立成功`);
+                            createItem({
+                                name: res.title,
+                                avatar: res.icon,
+                                code: res.code,
+                                active: true
+                            })
+                            $("#room-icon").src = res.icon;
+                            $("#room-title").innerText = res.title;
+                            EVALK_GLOBAL_ROOMS.push({
+                                name: res.title,
+                                avatar: res.icon,
+                                code: res.code,
+                                active: true
+                            });
+                            var inviteContainer = document.createElement("div");
+                            var inviteTip = document.createElement("div");
+                            var inviteButton = document.createElement("div");
+                            inviteContainer.className = "invite-container";
+                            inviteTip.className = "invite-tip";
+                            inviteButton.className = "invite-button btn btn-primary";
+                            inviteTip.innerHTML = `輸入 <span data-element="invite">invite:${res.code}</span> 以邀請他人加入此 Evalk`;
+                            // inviteButton.innerHTML = "點擊複製 Evalk 碼";
+                            $(`[data-room="${res.code}"]`).appendChild(inviteContainer);
+                            inviteContainer.appendChild(inviteTip);
+
+                            inviteTip.querySelector("[data-element='invite']").addEventListener("click", () => {
+                                selectText(inviteTip.querySelector("[data-element='invite']"))
+                            })
+
+                            // inviteTip.appendChild(inviteButton);
+                            NProgress.done();
+                        });
+                    } else if (e.value == "join") {
+                        var input = EVALK_MODAL_GENERATOR({
+                            close: { show: "false" },
+                            title: "以 Evalk 代碼加入",
+                            footer: [{
+                                "title": "取消",
+                                "theme": "secondary"
+                            }, {
+                                "theme": "primary",
+                                "title": "加入",
+                                "callback": function (e) {
+                                    socket.emit("join", {
+                                        code: input.elements[0].querySelector("input").value.trim(),
+                                        icon: "./favicon.ico"
+                                    }, (res) => {
+                                        if (res.status == "ok") {
+                                            createItem({
+                                                name: res.title,
+                                                avatar: res.icon,
+                                                code: res.code,
+                                                active: true
+                                            })
+                                            $("#room-icon").src = res.icon;
+                                            $("#room-title").innerText = res.title;
+                                            EVALK_GLOBAL_ROOMS.push({
+                                                name: res.title,
+                                                avatar: res.icon,
+                                                code: res.code,
+                                                active: true
+                                            });
+                                        }
+                                    })
+                                }
+                            }],
+                            body: `<div class="settings-item"><span style="white-space: nowrap;">Evalk 代碼</span><input type="text" class="evalk-input" placeholder="請輸入 Evalk 代碼..." style="padding: 8px 12px;"></div>`
+                        })
+
+                        input.then(() => {
+                            input.elements[0].querySelector("input").focus();
+                        })
+                    }
+                    newSelect.clearSelect();
+                })
+
+                $("#new").addEventListener("click", async () => {
+                    /*
+                    var tempSelect = document.createElement("div");
+                    var tempSelectID = DEV_RANDOM_ID(96)
+                    tempSelect.setAttribute('data-select', tempSelectID);
+                    tempSelect.className = "select";
+                    tempSelect.innerHTML = `<div class="select-default">請選擇...</div>
+            <div class="select-popup">
+                <div class="select-group">
+                    <div class="select-item" value="new">建立新的 Evalk</div>
+                    <div class="select-item" value="join">加入現有 Evalk</div>
+                </div>
+            </div>`;
+                    tempSelect.style.position = "absolute";
+                    tempSelect.style.left = getPosition($("#new")).x + "px";
+                    tempSelect.style.top = getPosition($("#new")).y + "px";
+                    tempSelect.style.zIndex = -1;
+                    tempSelect.style.opacity = 0;
+                    document.body.appendChild(tempSelect);
+                    await S.install()
+                    setTimeout(() => $(`[data-select="${tempSelectID}"]`).click(), 100);
+                    */
+                })
+
+                EVALK_GLOBAL_ROOMS.forEach(room => {
+                    createItem(room);
+                    room.defaultMessages.forEach((message) => {
+                        createMessage(message, "default");
+                    });
+                });
+            }
+
+            EVALK_CONNENT_COUNT++;
+
+            if (EVALK_CONNENT_COUNT > 1) return;
+        })
+
+        setTimeout(() => {
+            if (socket.connected == false) {
+                console.log(`Warning : Connection timed out.`);
+            }
+        }, 5000)
+    }
+
+    var serverList = [];
 
     EVALK_SERVER_LIST[location.protocol.split(":")[0]].forEach(server => {
-        serverListHTML += `<div class="${server == EVALK_DEFAULT_SERVER ? "select-item selected" : "select-item"}" value="${server}">${server.split("//")[1]}</div>`;
+        serverList.push({
+            value: server,
+            content: server.split("//")[1],
+            selected: server == EVALK_DEFAULT_SERVER
+        })
     })
 
     var input = EVALK_MODAL_GENERATOR({
@@ -639,125 +971,19 @@
             "theme": "primary",
             "title": "確定",
             "callback": function (e) {
-                if (!getJsonFromUrl()['EVALK_USER_NAME']) {
-                    EVALK_USER_NAME = input.elements[0].querySelector("input").value.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-                }
-
-                socket = io(EVALK_SERVER);
-
-                createMessage({
-                    username: "Privalk",
-                    id: DEV_RANDOM_ID(96),
-                    avatar: "./favicon.ico",
-                    time: Date.now(),
-                    code: EVALK_PRIVATE_ROOM_CODE,
-                    message: encode(`正在連接至伺服器...  ( ${EVALK_SERVER} ) `, EVALK_PRIVATE_ROOM_CODE),
-                    mention: false,
-                    bot: true
-                }, false)
-
-                window.addEventListener("offline", () => {
-                    socket.disconnect();
-                })
-
-                window.addEventListener("online", () => {
-                    location.reload();
-                })
-
-                socket.on("disconnect", function () {
-                    createMessage({
-                        username: "Privalk",
-                        id: DEV_RANDOM_ID(96),
-                        avatar: "./favicon.ico",
-                        time: Date.now(),
-                        code: EVALK_PRIVATE_ROOM_CODE,
-                        message: encode(`⚠️ 已與伺服器斷開連接`, EVALK_PRIVATE_ROOM_CODE),
-                        mention: false,
-                        bot: true
-                    }, false)
-                })
-
-                socket.on("connect", async function () {
-                    socketCount++;
-                    EVALK_GLOBAL_ROOMS.forEach(room => {
-                        socket.emit("join", {
-                            code: room.code
-                        })
-                    })
-
-                    createMessage({
-                        username: "Privalk",
-                        id: DEV_RANDOM_ID(96),
-                        avatar: "./favicon.ico",
-                        time: Date.now(),
-                        code: EVALK_PRIVATE_ROOM_CODE,
-                        message: encode(`✅ 已連接至伺服器`, EVALK_PRIVATE_ROOM_CODE),
-                        mention: false,
-                        bot: true
-                    }, false)
-
-                    if (socketCount == 1) {
-                        $("#new").addEventListener("click", () => {
-                            NProgress.start();
-                            socket.emit("create", {
-                                icon: "./favicon.ico"
-                            }, (res) => {
-                                CL("EVALK_ROOM_MANAGER", `聊天室建立成功`);
-                                createItem({
-                                    name: res.title,
-                                    avatar: res.icon,
-                                    code: res.code,
-                                    active: true
-                                })
-                                $("#room-icon").src = res.icon;
-                                $("#room-title").innerText = res.title;
-                                EVALK_GLOBAL_ROOMS.push({
-                                    name: res.title,
-                                    avatar: res.icon,
-                                    code: res.code,
-                                    active: true
-                                });
-                                NProgress.done();
-                            });
-                        })
-
-                        EVALK_GLOBAL_ROOMS.forEach(room => {
-                            createItem(room);
-                            room.defaultMessages.forEach((message) => {
-                                createMessage(message, "default");
-                            });
-                        });
-                    }
-
-                    EVALK_CONNENT_COUNT++;
-
-                    if (EVALK_CONNENT_COUNT > 1) return;
-                })
-
-                setTimeout(() => {
-                    if (socket.connected == false) {
-                        console.log(`Warning : Connection timed out.`);
-                    }
-                }, 5000)
+                initConnection(input);
             }
         }],
-        body: `<div class="settings-item"><span style="white-space: nowrap;">暱稱</span><input type="text" class="evalk-input" placeholder="請輸入暱稱..." value="${EVALK_USER_NAME}" style="padding: 8px 12px;" ${getJsonFromUrl()['EVALK_USER_NAME'] ? "disabled" : ""}></div><div class="settings-item"><span>伺服器</span><div class="select server-select" data-select id="server-list">
+        body: `<div class="settings-item"><span style="white-space: nowrap;">暱稱</span><input type="text" class="evalk-input" placeholder="請輸入暱稱..." value="${EVALK_USER_NAME}" style="padding: 8px 12px;" ${getJsonFromUrl()['EVALK_USER_NAME'] ? "disabled" : ""}></div><div class="settings-item" data-element="server"><span>伺服器</span><!--div class="select server-select" data-select id="server-list">
             <div class="select-default">請選擇...</div>
             <div class="select-popup">
                 <div class="select-group">
-                    ${serverListHTML}
                 </div>
             </div>
-        </div></div>`
+        </div--></div>`
     })
 
     input.then(() => {
-        S.install();
-
-        input.elements[0].querySelector("#server-list").addEventListener("change", (e) => {
-            EVALK_SERVER = e.detail;
-        })
-
         input.elements[0].querySelector("input").addEventListener("input", (e) => {
             if (e.target.value.length == 0) {
                 input.elements[1][0].classList.add("disabled")
@@ -768,14 +994,17 @@
         })
         input.elements[0].querySelector("input").addEventListener("keydown", (e) => {
             if (e.key == "Enter" && e.target.value.length != 0) {
-                if (!getJsonFromUrl()['EVALK_USER_NAME']) {
-                    EVALK_USER_NAME = input.elements[0].querySelector("input").value.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-                }
-                input.close();
+                initConnection(input);
             }
         })
         input.elements[0].querySelector("input").focus();
         input.elements[0].querySelector("input").select();
+
+        var serverSelect = S.install(input.elements[0].querySelector('[data-element="server"]'), serverList);
+
+        serverSelect.on("change", (e) => {
+            EVALK_SERVER = e.value;
+        })
     })
 
     function CL(name, message) {

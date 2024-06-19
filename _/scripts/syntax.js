@@ -61,6 +61,6 @@ function markdownToHTML(markdown) {
 	html = html.replace(inlineCodeRegex, (match, p1) => {
         return `<code class="inline">${p1}</code>`;
     })
-
+	
 	return html;
 }
