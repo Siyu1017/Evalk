@@ -1285,6 +1285,12 @@ label.switch[disabled] {
 	max-width: 480px;
 }
 
+.title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 @media screen and (max-width: 1096px) {
 	.evalk-invite {
 		flex-direction: column;

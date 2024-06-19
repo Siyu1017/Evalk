@@ -344,7 +344,7 @@
             var bot = data.bot || false;
             var content = decode(data.message, data.code);
             var avatar = data.avatar;
-            var time = new Date(data.time).format("yyyy/MM/dd hh:mm:ss");
+            var time = new Date(data.time).getDate() == new Date().getDate() ? `今天 ${new Date(data.time).format("hh:mm")}` : new Date(data.time + 1000 * 60 * 60 * 24).getDate() == new Date().getDate() ? `昨天 ${new Date(data.time).format("hh:mm")}` : new Date(data.time).format("yyyy/MM/dd hh:mm");
             var messageID = data.id;
             var username = data.username;
             var message = document.createElement("div");
@@ -930,7 +930,7 @@
                                             matchedRoom.show();
                                             return;
                                         }
-                                        if (res.status == "ok") {
+                                        if (res.status == "ok" && /([a-z]{3}-[a-z]{4}-[a-z]{3})/g.test(res.code)) {
                                             createItem({
                                                 name: res.title,
                                                 avatar: res.icon,
@@ -953,6 +953,12 @@
 
                         input.then(() => {
                             input.elements[0].querySelector("input").focus();
+
+                            input.elements[0].querySelector("input").addEventListener("keydown", (e) => {
+                                if (e.key == "Enter" && e.target.value.length != 0) {
+                                    input.elements[1][1].click();
+                                }
+                            })
                         })
                     }
                     newSelect.clearSelect();
