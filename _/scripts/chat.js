@@ -94,31 +94,62 @@
     /* For Develop -- End */
 
     var EVALK = {
-        roomCode: "dev-code-evk",
+        currentRoomCode: "dev-code-evk",
         userInfo: {
             id: DEV_RANDOM_ID(144),
             name: "Anonymous User [ " + DEV_RANDOM_ID(8, "abcdefghijklmnopqrstuvwxyz01234567890123456789") + " ]",
             avatar: "./favicon.ico"
         },
-        rooms: [
-            {
-                name: "Evalk",
-                avatar: "./favicon.ico",
-                code: "dev-code-evk",
-                active: true,
-                messages: [
-                    {
-                        username: "Evalk",
-                        id: DEV_RANDOM_ID(96),
-                        avatar: "./favicon.ico",
-                        time: Date.now(),
-                        message: encode(
-                            `<div>🎉 歡迎來到 Evalk! 🎉</div><div>💡 你可以使用邀請代碼來邀請你的好友</div><div>⬇️ 不過請遵守以下規則</div><div>1️⃣ 不傳送色情、暴力或血腥等訊息</div><div>2️⃣ 不以言語攻擊他人</div><div>3️⃣ 不做出對於伺服器有害之行為</div><div>4️⃣ 不任意散播謠言</div><div>🎉 祝您在 Evalk 有美好的一天~ 🎉</div><div style="text-align: right;">Evalk 團隊敬上</div>`, "dev-code-evk"),
-                        bot: true
-                    }
-                ]
-            }
-        ],
+        rooms: {
+            local: [
+                {
+                    name: "Privalk",
+                    avatar: "./favicon.ico",
+                    code: EVALK_PRIVATE_ROOM_CODE,
+                    active: true,
+                    defaultMessages: [
+                        {
+                            username: "Privalk",
+                            id: DEV_RANDOM_ID(96),
+                            avatar: "./favicon.ico",
+                            time: Date.now(),
+                            code: EVALK_PRIVATE_ROOM_CODE,
+                            message: encode(
+                                `🎉 歡迎來到 Privalk! 🎉\n此 Evalk 只有你能看到，並且這當中的內容完全不會被傳送至伺服器`, EVALK_PRIVATE_ROOM_CODE),
+                            bot: true
+                        }
+                    ]
+                }
+            ],
+            global: [
+                {
+                    name: "Global",
+                    avatar: "./favicon.ico",
+                    code: "dev-code-evk",
+                    active: false,
+                    defaultMessages: [
+                        {
+                            username: "Evalk",
+                            id: DEV_RANDOM_ID(96),
+                            avatar: "./favicon.ico",
+                            time: Date.now(),
+                            code: "dev-code-evk",
+                            message: encode(
+                                `🎉 歡迎來到 Evalk! 🎉\n💡 你可以於聊天中使用以下的 Markdown 語法
+        <div style="display: inline-flex;align-items: center;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;"># Heading1 : <h1 style="margin: 0;">Heading1</h1></div>
+        <div style="display: inline-flex;align-items: center;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">## Heading2 : <h2 style="margin: 0;">Heading2</h2></div>
+        <div style="display: inline-flex;align-items: center;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">### Heading3 : <h3 style="margin: 0;">Heading3</h3></div>
+        <div style="display: inline-flex;align-items: center;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">~~Deleted Text~~ : <s>Deleted Text</s></div>
+        <div style="display: inline-flex;align-items: center;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">_Italic Text_ : <i>Italic Text</i></div>
+        <div style="display: inline-flex;align-items: center;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">**Bold Text** : <b>Bold Text</b></div>
+        <div style="display: inline-flex;align-items: center;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">\`Inline Code\` : <code class="inline">Inline Code</code></div>
+        <div>\`\`\`Code\`\`\` : <code>Code</code></div>`, "dev-code-evk"),
+                            bot: true
+                        }
+                    ]
+                }
+            ]
+        },
         status: {
             typing: false
         },
